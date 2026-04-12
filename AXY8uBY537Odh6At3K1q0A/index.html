@@ -40,6 +40,14 @@
             font-size: 72px;
             margin: 0 auto 24px;
             box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+            transition: transform 0.3s;
+        }
+        .cover.playing {
+            animation: pulse 2s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
         }
         h1 {
             font-size: 20px;
@@ -52,13 +60,45 @@
             opacity: 0.5;
             margin-bottom: 28px;
         }
+
+        /* Большая кнопка Play */
+        .play-btn {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.5);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .play-btn:hover {
+            transform: scale(1.08);
+            box-shadow: 0 6px 28px rgba(102, 126, 234, 0.7);
+        }
+        .play-btn:active {
+            transform: scale(0.95);
+        }
+        .play-btn svg {
+            width: 36px;
+            height: 36px;
+            fill: white;
+        }
+        .play-btn.is-playing svg .play-icon { display: none; }
+        .play-btn.is-playing svg .pause-icon { display: block; }
+        .play-btn:not(.is-playing) svg .play-icon { display: block; }
+        .play-btn:not(.is-playing) svg .pause-icon { display: none; }
+
+        /* Стандартный плеер (скрыт, но управляет воспроизведением) */
         audio {
             width: 100%;
             border-radius: 12px;
             outline: none;
-        }
-        audio::-webkit-media-controls-panel {
-            background: rgba(255, 255, 255, 0.1);
+            display: none;
         }
         .hint {
             margin-top: 20px;
@@ -77,19 +117,89 @@
                 border-radius: 16px;
             }
             h1 { font-size: 18px; }
+            .play-btn { width: 70px; height: 70px; }
+            .play-btn svg { width: 30px; height: 30px; }
         }
     </style>
 </head>
 <body>
     <div class="player-card">
-        <div class="cover">&#127925;</div>
+        <div class="cover" id="cover">&#127925;</div>
         <h1>SoundHelix Song 1</h1>
-        <p class="subtitle">Нажмите Play для воспроизведения</p>
-        <audio controls preload="metadata">
+        <p class="subtitle" id="subtitle">Нажмите для воспроизведения</p>
+        <button class="play-btn" id="playBtn" onclick="togglePlay()">
+            <svg viewBox="0 0 24 24">
+                <path class="play-icon" d="M8 5v14l11-7z"/>
+                <path class="pause-icon" d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+            </svg>
+        </button>
+        <audio id="audio" preload="auto">
             <source src="audio/sample.mp3" type="audio/mpeg">
             Ваш браузер не поддерживает воспроизведение аудио.
         </audio>
         <p class="hint">Откройте в браузере для лучшего воспроизведения</p>
     </div>
+
+    <script>
+        var audio = document.getElementById('audio');
+        var playBtn = document.getElementById('playBtn');
+        var cover = document.getElementById('cover');
+        var subtitle = document.getElementById('subtitle');
+
+        function togglePlay() {
+            if (audio.paused) {
+                audio.play().then(function() {
+                    playBtn.classList.add('is-playing');
+                    cover.classList.add('playing');
+                    subtitle.textContent = 'Воспроизведение...';
+                }).catch(function(e) {
+                    console.log('Play failed:', e);
+                });
+            } else {
+                audio.pause();
+                playBtn.classList.remove('is-playing');
+                cover.classList.remove('playing');
+                subtitle.textContent = 'Нажмите для воспроизведения';
+            }
+        }
+
+        // Попытка автовоспроизведения при загрузке страницы
+        window.addEventListener('DOMContentLoaded', function() {
+            audio.play().then(function() {
+                playBtn.classList.add('is-playing');
+                cover.classList.add('playing');
+                subtitle.textContent = 'Воспроизведение...';
+            }).catch(function() {
+                // Автовоспроизведение заблокировано — ждём любое касание экрана
+                subtitle.textContent = 'Нажмите для воспроизведения';
+
+                document.addEventListener('click', function handler() {
+                    audio.play().then(function() {
+                        playBtn.classList.add('is-playing');
+                        cover.classList.add('playing');
+                        subtitle.textContent = 'Воспроизведение...';
+                    }).catch(function() {});
+                    document.removeEventListener('click', handler);
+                }, { once: true });
+
+                // Для iOS: также слушаем touchend
+                document.addEventListener('touchend', function handler() {
+                    audio.play().then(function() {
+                        playBtn.classList.add('is-playing');
+                        cover.classList.add('playing');
+                        subtitle.textContent = 'Воспроизведение...';
+                    }).catch(function() {});
+                    document.removeEventListener('touchend', handler);
+                }, { once: true });
+            });
+        });
+
+        // Сброс при окончании
+        audio.addEventListener('ended', function() {
+            playBtn.classList.remove('is-playing');
+            cover.classList.remove('playing');
+            subtitle.textContent = 'Нажмите для повторного воспроизведения';
+        });
+    </script>
 </body>
 </html>
