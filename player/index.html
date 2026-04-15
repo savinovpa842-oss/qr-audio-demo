@@ -4,109 +4,214 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
-    <title>Аудиозапись</title>
+    <title>Плейлист</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
             min-height: 100vh;
             background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
             color: #fff;
-            padding: 24px;
+            padding: 0;
         }
-        .player-card {
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-radius: 24px;
-            padding: 40px 32px;
-            max-width: 400px;
-            width: 100%;
+        .header {
             text-align: center;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            padding: 32px 20px 16px;
         }
-        .cover {
-            width: 180px;
-            height: 180px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 72px;
-            margin: 0 auto 24px;
-            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+        .header-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
         }
-        h1 {
-            font-size: 20px;
+        .header h1 {
+            font-size: 22px;
             font-weight: 600;
-            margin-bottom: 6px;
-            line-height: 1.3;
         }
-        .subtitle {
-            font-size: 14px;
-            opacity: 0.5;
-            margin-bottom: 28px;
+        .header .count {
+            font-size: 13px;
+            opacity: 0.4;
+            margin-top: 4px;
+        }
+        .now-playing {
+            background: rgba(102, 126, 234, 0.15);
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            padding: 16px 20px;
+            display: none;
+        }
+        .now-playing.visible { display: block; }
+        .now-playing-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.4;
+            margin-bottom: 8px;
+        }
+        .now-playing-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
         }
         audio {
             width: 100%;
-            border-radius: 12px;
             outline: none;
+            border-radius: 8px;
         }
         audio::-webkit-media-controls-panel {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.08);
+        }
+        .playlist {
+            padding: 8px 0;
+        }
+        .track {
+            display: flex;
+            align-items: center;
+            padding: 14px 20px;
+            cursor: pointer;
+            transition: background 0.15s;
+            gap: 14px;
+        }
+        .track:hover {
+            background: rgba(255,255,255,0.05);
+        }
+        .track.active {
+            background: rgba(102, 126, 234, 0.12);
+        }
+        .track-num {
+            font-size: 14px;
+            opacity: 0.3;
+            min-width: 24px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        .track.active .track-num {
+            opacity: 1;
+        }
+        .track-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .track-title {
+            font-size: 15px;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .track.active .track-title {
+            color: #8fa4f0;
+        }
+        .track-eq {
+            display: none;
+            gap: 2px;
+            align-items: flex-end;
+            height: 14px;
+        }
+        .track.active .track-eq { display: flex; }
+        .track.active .track-num-text { display: none; }
+        .eq-bar {
+            width: 3px;
+            background: #8fa4f0;
+            border-radius: 1px;
+            animation: eq 0.8s ease-in-out infinite alternate;
+        }
+        .eq-bar:nth-child(1) { height: 6px; animation-delay: 0s; }
+        .eq-bar:nth-child(2) { height: 10px; animation-delay: 0.2s; }
+        .eq-bar:nth-child(3) { height: 4px; animation-delay: 0.4s; }
+        .eq-bar:nth-child(4) { height: 8px; animation-delay: 0.1s; }
+        @keyframes eq {
+            0% { height: 3px; }
+            100% { height: 14px; }
         }
         .hint {
-            margin-top: 20px;
+            text-align: center;
             font-size: 12px;
-            opacity: 0.35;
-        }
-        .error {
-            display: none;
-            color: #ff6b6b;
-            font-size: 16px;
-            margin-top: 20px;
-        }
-        @media (max-width: 440px) {
-            .player-card {
-                padding: 28px 20px;
-                border-radius: 18px;
-            }
-            .cover {
-                width: 140px;
-                height: 140px;
-                font-size: 56px;
-                border-radius: 16px;
-            }
-            h1 { font-size: 18px; }
+            opacity: 0.3;
+            padding: 16px 20px 24px;
         }
     </style>
 </head>
 <body>
-    <div class="player-card">
-        <div class="cover">&#127925;</div>
-        <h1>Аудиозапись</h1>
-        <p class="subtitle">Нажмите Play для воспроизведения</p>
-        <audio id="player" controls preload="metadata">
-            Ваш браузер не поддерживает воспроизведение аудио.
-        </audio>
-        <p class="hint">Откройте в браузере для лучшего воспроизведения</p>
-        <p class="error" id="error"></p>
+    <div class="header">
+        <div class="header-icon">&#127925;</div>
+        <h1>Плейлист</h1>
+        <div class="count" id="trackCount"></div>
     </div>
+
+    <div class="now-playing" id="nowPlaying">
+        <div class="now-playing-label">Сейчас играет</div>
+        <div class="now-playing-title" id="nowPlayingTitle"></div>
+        <audio id="player" controls preload="metadata"></audio>
+    </div>
+
+    <div class="playlist" id="playlist"></div>
+
+    <div class="hint">Откройте в браузере для лучшего воспроизведения</div>
+
     <script>
-        var params = new URLSearchParams(window.location.search);
-        var t = params.get('t');
-        if (t && /^[a-f0-9]{20}$/.test(t)) {
-            document.getElementById('player').innerHTML =
-                '<source src="audio/' + t + '.mp3" type="audio/mpeg">';
-        } else {
-            document.querySelector('.player-card').style.display = 'none';
-            document.getElementById('error').style.display = 'block';
-            document.getElementById('error').textContent = '';
+        var tracks = [
+            {id:'1ea8cc4b54d842f9b6b2',title:'Вперёд!'},
+            {id:'da0b4e65d29549858eec',title:'Женщине'},
+            {id:'676a1fe66f4348a591ea',title:'Лица'},
+            {id:'3779cf1f31f84f0398f3',title:'По небу босиком'},
+            {id:'9cbf97a6ca754610b427',title:'Сумерки'},
+            {id:'7720b3570dd44314bb85',title:'Колечко'},
+            {id:'b6620088b150460c8624',title:'Под лаской плюшевого пледа'},
+            {id:'3374647df0f64e2ca711',title:'Сложности уйдут'},
+            {id:'a46f8cf51f3e46a39225',title:'Белой акации гроздья душистые'},
+            {id:'5ae94912249e4b16a647',title:'Любить'},
+            {id:'eac3da59149342178d90',title:'Woman'}
+        ];
+
+        document.getElementById('trackCount').textContent = tracks.length + ' ' + wordForm(tracks.length);
+
+        var playlist = document.getElementById('playlist');
+        var player = document.getElementById('player');
+        var currentTrack = -1;
+
+        tracks.forEach(function(t, i) {
+            var div = document.createElement('div');
+            div.className = 'track';
+            div.innerHTML =
+                '<div class="track-num">' +
+                    '<span class="track-num-text">' + (i + 1) + '</span>' +
+                    '<div class="track-eq">' +
+                        '<div class="eq-bar"></div><div class="eq-bar"></div>' +
+                        '<div class="eq-bar"></div><div class="eq-bar"></div>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="track-info"><div class="track-title">' + t.title + '</div></div>';
+            div.onclick = function() { play(i); };
+            playlist.appendChild(div);
+        });
+
+        function play(index) {
+            var t = tracks[index];
+            player.src = 'audio/' + t.id + '.mp3';
+            player.play();
+            document.getElementById('nowPlaying').classList.add('visible');
+            document.getElementById('nowPlayingTitle').textContent = t.title;
+            currentTrack = index;
+            updateActive();
+        }
+
+        function updateActive() {
+            var items = playlist.querySelectorAll('.track');
+            items.forEach(function(el, i) {
+                el.classList.toggle('active', i === currentTrack);
+            });
+        }
+
+        player.addEventListener('ended', function() {
+            if (currentTrack < tracks.length - 1) {
+                play(currentTrack + 1);
+            }
+        });
+
+        function wordForm(n) {
+            var r = n % 10, r2 = n % 100;
+            if (r2 >= 11 && r2 <= 19) return 'треков';
+            if (r === 1) return 'трек';
+            if (r >= 2 && r <= 4) return 'трека';
+            return 'треков';
         }
     </script>
 </body>
