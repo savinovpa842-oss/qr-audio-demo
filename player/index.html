@@ -35,9 +35,7 @@
             background: rgba(102, 126, 234, 0.15);
             border-bottom: 1px solid rgba(255,255,255,0.06);
             padding: 16px 20px;
-            display: none;
         }
-        .now-playing.visible { display: block; }
         .now-playing-label {
             font-size: 11px;
             text-transform: uppercase;
@@ -165,7 +163,7 @@
 
         var playlist = document.getElementById('playlist');
         var player = document.getElementById('player');
-        var currentTrack = -1;
+        var currentTrack = 0;
 
         tracks.forEach(function(t, i) {
             var div = document.createElement('div');
@@ -183,11 +181,15 @@
             playlist.appendChild(div);
         });
 
+        // Init: load first track (no autoplay — browser blocks it)
+        player.src = 'audio/' + tracks[0].id + '.mp3';
+        document.getElementById('nowPlayingTitle').textContent = tracks[0].title;
+        updateActive();
+
         function play(index) {
             var t = tracks[index];
             player.src = 'audio/' + t.id + '.mp3';
             player.play();
-            document.getElementById('nowPlaying').classList.add('visible');
             document.getElementById('nowPlayingTitle').textContent = t.title;
             currentTrack = index;
             updateActive();
