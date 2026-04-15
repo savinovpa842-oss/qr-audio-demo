@@ -65,6 +65,12 @@
             font-size: 12px;
             opacity: 0.35;
         }
+        .error {
+            display: none;
+            color: #ff6b6b;
+            font-size: 16px;
+            margin-top: 20px;
+        }
         @media (max-width: 440px) {
             .player-card {
                 padding: 28px 20px;
@@ -83,13 +89,25 @@
 <body>
     <div class="player-card">
         <div class="cover">&#127925;</div>
-        <h1>SoundHelix Song 1</h1>
+        <h1>Аудиозапись</h1>
         <p class="subtitle">Нажмите Play для воспроизведения</p>
-        <audio controls preload="metadata">
-            <source src="audio/sample.mp3" type="audio/mpeg">
+        <audio id="player" controls preload="metadata">
             Ваш браузер не поддерживает воспроизведение аудио.
         </audio>
         <p class="hint">Откройте в браузере для лучшего воспроизведения</p>
+        <p class="error" id="error"></p>
     </div>
+    <script>
+        var params = new URLSearchParams(window.location.search);
+        var t = params.get('t');
+        if (t && /^[a-f0-9]{20}$/.test(t)) {
+            document.getElementById('player').innerHTML =
+                '<source src="audio/' + t + '.mp3" type="audio/mpeg">';
+        } else {
+            document.querySelector('.player-card').style.display = 'none';
+            document.getElementById('error').style.display = 'block';
+            document.getElementById('error').textContent = '';
+        }
+    </script>
 </body>
 </html>
